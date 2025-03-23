@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,24 +64,37 @@
       <input type="text" name="business_name" placeholder="Your Business Name" required />
       <input type="tel" name="phone" placeholder="Your Phone" required />
       <input type="email" name="email" placeholder="Your Email" required />
-      <p><strong>Payment options go here</strong></p>
+
+      <div id="paypal-button-container" style="margin: 20px 0;"></div>
+      <button type="button" id="stripe-button">Pay with Stripe</button>
     </form>
+
+    <p id="confirmation-message" style="display:none; color: green; margin-top: 20px;">
+      ✅ Booking confirmed! A confirmation email has been sent.
+    </p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=GBP"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+
   <script>
+    emailjs.init("YOUR_EMAILJS_USER_ID");
+
     document.addEventListener("DOMContentLoaded", function () {
       const datePicker = document.getElementById("booking-date");
       const continueBtn = document.getElementById("continue-btn");
       const bookingForm = document.getElementById("booking-form");
       const selectedDateInput = document.getElementById("selected-date");
+      const confirmation = document.getElementById("confirmation-message");
 
       flatpickr(datePicker, {
         minDate: "today",
         dateFormat: "Y-m-d",
         disable: [
           function(date) {
-            return date.getDay() !== 4; // Thursdays only
+            return date.getDay() !== 4;
           }
         ],
         onChange: function(selectedDates, dateStr) {
@@ -94,6 +108,46 @@
         continueBtn.style.display = "none";
         datePicker.disabled = true;
       });
+
+      // PayPal integration
+      paypal.Buttons({
+        createOrder: function(data, actions) {
+          return actions.order.create({
+            purchase_units: [{ amount: { value: '15.00' } }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details) {
+            sendEmail();
+          });
+        }
+      }).render('#paypal-button-container');
+
+      // Stripe redirect (optional)
+      document.getElementById("stripe-button").addEventListener("click", () => {
+        const stripe = Stripe("YOUR_STRIPE_PUBLISHABLE_KEY");
+        stripe.redirectToCheckout({
+          lineItems: [{ price: "YOUR_STRIPE_PRICE_ID", quantity: 1 }],
+          mode: "payment",
+          successUrl: window.location.href + "?paid=true",
+          cancelUrl: window.location.href + "?cancelled=true"
+        });
+      });
+
+      // If user returns from Stripe
+      if (window.location.search.includes("paid=true")) {
+        sendEmail();
+      }
+
+      function sendEmail() {
+        emailjs.sendForm("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", bookingForm)
+          .then(() => {
+            confirmation.style.display = "block";
+            bookingForm.reset();
+          }, (err) => {
+            alert("Email failed: " + err.text);
+          });
+      }
     });
   </script>
 </body>
