@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Widget</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border-radius: 41pt;
+      text-align: center;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      background: black;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://drive.google.com/uc?export=view&id=1CO4Dgh5WknPSIQXzXznMQjFeYbvnEnfG" style="width: 60%; margin-bottom: 20px;" />
+    <h2>Select Your Booking Date</h2>
+    <p>Thursdays | 11:30 AM – 1:30 PM GMT<br><em>Ladies Mile Pub, Brighton</em></p>
+    <input id="booking-date" placeholder="Click to select a Thursday" />
+    <button id="continue-btn" disabled>Continue to Booking</button>
 
+    <form id="booking-form" style="display:none; margin-top: 20px;">
+      <input type="hidden" name="selected_date" id="selected-date" />
+      <input type="text" name="name" placeholder="Your Name" required />
+      <input type="text" name="business_name" placeholder="Your Business Name" required />
+      <input type="tel" name="phone" placeholder="Your Phone" required />
+      <input type="email" name="email" placeholder="Your Email" required />
+      <p><strong>Payment options go here</strong></p>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const datePicker = document.getElementById("booking-date");
+      const continueBtn = document.getElementById("continue-btn");
+      const bookingForm = document.getElementById("booking-form");
+      const selectedDateInput = document.getElementById("selected-date");
+
+      flatpickr(datePicker, {
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        disable: [
+          function(date) {
+            return date.getDay() !== 4; // Thursdays only
+          }
+        ],
+        onChange: function(selectedDates, dateStr) {
+          selectedDateInput.value = dateStr;
+          continueBtn.disabled = false;
+        }
+      });
+
+      continueBtn.addEventListener("click", () => {
+        bookingForm.style.display = "block";
+        continueBtn.style.display = "none";
+        datePicker.disabled = true;
+      });
+    });
+  </script>
+</body>
+</html>
